@@ -10,13 +10,27 @@ import UIKit
 
 class TodoViewController: UITableViewController {
     
-    var itemArray = ["Go swimming pool", "Buy oranges", "Buy apples"]
+    var itemArray = [Item]()
 
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
        navigationItem.title = "Todo"
+        let item1 = Item()
+            item1.title = "Buy Toto"
+        
+        let item2 = Item()
+            item2.title = "Buy Soap"
+        
+        itemArray.append(item1)
+        itemArray.append(item2)
+        
+        if let myDefaults =  defaults.array(forKey: "Todo") {
+           itemArray = myDefaults as! [Item]
+        }
        
     }
 
@@ -28,8 +42,17 @@ class TodoViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let tableCell = tableView.dequeueReusableCell(withIdentifier: "TodoCell", for: indexPath)
-            tableCell.textLabel?.text = itemArray[indexPath.row]
+            tableCell.textLabel?.text = itemArray[indexPath.row].title
         
+        let item = itemArray[indexPath.row]
+        tableCell.textLabel?.text = item.title
+        
+        tableCell.accessoryType = item.done ? .checkmark : .none
+//        if item.done == false{
+//            tableCell.accessoryType = .none
+//        }else{
+//            tableCell.accessoryType = .checkmark
+//        }
         
         return tableCell
         
@@ -37,14 +60,12 @@ class TodoViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(itemArray[indexPath.row])
+       
+        itemArray[indexPath.row].done  = !itemArray[indexPath.row].done
+
+        tableView.reloadData()
         tableView.deselectRow(at: indexPath, animated: true)
-        let cell = tableView.cellForRow(at: indexPath)
-        if cell?.accessoryType == .checkmark {
-            cell?.accessoryType = .none
-        }else{
-            cell?.accessoryType = .checkmark
-        }
-        
+    
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -52,8 +73,14 @@ class TodoViewController: UITableViewController {
         
         let alert = UIAlertController(title: "Add todo item", message: "", preferredStyle: .alert)
         let alertAction = UIAlertAction(title: "Add item", style: .default) { (action) in
-            self.itemArray.append(textField.text!)
+            let item = Item()
+                item.title = textField.text!
+            
+            self.itemArray.append(item)
+            self.defaults.set(self.itemArray, forKey: "Todo")
             self.tableView.reloadData()
+          
+            
             //print(textField.text!)
         }
         
