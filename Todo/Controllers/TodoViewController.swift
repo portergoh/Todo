@@ -13,10 +13,16 @@ class TodoViewController: UITableViewController {
     var itemArray = [Item]()
 
     let defaults = UserDefaults.standard
+    let dataPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("item.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+      
+        
+        //print(dataPath)
+        
         
        navigationItem.title = "Todo"
         let item1 = Item()
@@ -28,10 +34,11 @@ class TodoViewController: UITableViewController {
         itemArray.append(item1)
         itemArray.append(item2)
         
-        if let myDefaults =  defaults.array(forKey: "Todo") {
-           itemArray = myDefaults as! [Item]
-        }
+//        if let myDefaults =  defaults.array(forKey: "TodoArrayList") {
+//           itemArray = myDefaults as! [Item]
+//        }
        
+        loadItems()
     }
 
     override func didReceiveMemoryWarning() {
@@ -63,7 +70,7 @@ class TodoViewController: UITableViewController {
        
         itemArray[indexPath.row].done  = !itemArray[indexPath.row].done
 
-        tableView.reloadData()
+        self.saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
     
     }
@@ -77,10 +84,9 @@ class TodoViewController: UITableViewController {
                 item.title = textField.text!
             
             self.itemArray.append(item)
-            self.defaults.set(self.itemArray, forKey: "Todo")
-            self.tableView.reloadData()
-          
-            
+           // self.defaults.set(self.itemArray, forKey: "TodoArrayList")
+
+            self.saveItems()
             //print(textField.text!)
         }
         
@@ -92,6 +98,33 @@ class TodoViewController: UITableViewController {
         alert.addAction(alertAction)
         present(alert, animated: true, completion: nil)
         
+    }
+    
+    func loadItems(){
+        do {
+        
+            if let data =  try? Data(contentsOf: dataPath!) {
+               let decoder = PropertyListDecoder()
+                itemArray = try decoder.decode([Item].self, from: data)
+                
+            }
+            
+        }catch{
+            print("\(error)")
+        }
+        
+    }
+    
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataPath!)
+        }catch {
+            print("\(error)")
+        }
+        self.tableView.reloadData()
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
